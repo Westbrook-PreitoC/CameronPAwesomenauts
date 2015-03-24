@@ -238,7 +238,7 @@ game.EnemyCreep = me.Entity.extend({
                 return (new me.Rect(0, 0, 32, 64)).toPolygon();
             }
         }]);
-        this.health = 10;
+        this.health = 5;
         this.alwaysUpdate = true;
         //this.attacking lets us know if the enemy is currently attacking
         this.attacking = false;
@@ -260,7 +260,7 @@ game.EnemyCreep = me.Entity.extend({
         this.health = this.health - damage;
     },
     
-    update: function(delta){
+    update: function(delta){    
         console.log(this.health);
         if(this.health <= 0){
             me.game.world.removeChild(this)
