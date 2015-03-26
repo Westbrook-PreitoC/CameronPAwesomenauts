@@ -11,17 +11,23 @@ var game = {
                 enemyCreepHealth: 5,
                 playerHealth: 10,
                 enemyCreepAttack: 5,
-                playerAttack: 10,
+                playerAttack: 50,
 //                orchBaseDamage: 10,
 //                orchBaseHealth:100,
 //                orchBaseSpeed: 5,
 //                orchBaseDefense: 0,
                 playerAttackTimer: 1000,
                 creepAttackTimer: 1000,
-                playerMoveSpeed: 10,
+                playerMoveSpeed: 15,
                 creepMoveSpeed: 7,
                 gameManager: "",
                 player: "",
+                exp: 0,
+                gold: 0,
+                exp1: 0,
+                exp2: 0,
+                exp3: 0,
+                exp4: 0
 	},
 	
 	
@@ -65,6 +71,6 @@ var game = {
 		me.state.set(me.state.PLAY, new game.PlayScreen());
 
 		// Start the game.
-		me.state.change(me.state.PLAY);
+		me.state.change(me.state.MENU);
 	}
 };
