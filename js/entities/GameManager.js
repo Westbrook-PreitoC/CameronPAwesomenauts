@@ -21,7 +21,7 @@ game.GameManager = Object.extend({
         
         if(Math.round(this.now/1000)%10 ===0 && (this.now - this.lastCreep >= 1000)){
             this.lastCreep = this.now;
-            var creepe = me.pool.pull("EnemyCreep", 2380, 20, {});
+            var creepe = me.pool.pull("EnemyCreep", 2200, 420, {});
             me.game.world.addChild(creepe, 5);
         }
         
