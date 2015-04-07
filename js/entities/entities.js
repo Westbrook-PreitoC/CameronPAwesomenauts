@@ -42,6 +42,7 @@ game.PlayerEntity = me.Entity.extend({
         //Keeps track of which direction your character is going
         this.facing = "right";        
         this.dead = false;
+        this.attacking = false;
     },
     
     addAnimation: function(){
@@ -52,14 +53,59 @@ game.PlayerEntity = me.Entity.extend({
     },
     
     update: function(delta){
-        this.now = new Date().getTime();
-        
-        this.dead = checkIfDead(); 
-        
+        this.now = new Date().getTime();        
+        this.dead = checkIfDead();
         this.checkKeyPressesAndMove();
+        this.setAnimation(); 
+        me.collision.check(this, true, this.collideHandler.bind(this), true);
+        this.body.update(delta);
+        this._super(me.Entity, "update", [delta]);
+        return true;
+    },
+    
+    checkIfDead: function(){
+         if (this.health <= 0){
+            return true;
+        }
+        return false;
+    },
+    
+    checkKeyPressesAndMove: function(){
+        if (me.input.isKeyPressed("right")){
+           this.moveRight();
+        }else if (me.input.isKeyPressed("left")){
+            this.moveLeft();
+        }else {
+            this.body.vel.x = 0;
+        }
+        if (me.input.isKeyPressed("up")){
+            this.up();
+        }  
         
-
-        if (me.input.isKeyPressed("attack")){
+        this.attacking = me.input.isKeyPressed("attack");
+    },
+    
+    moveRight: function(){
+         //sets the position of my x by adding the velocity defined above in
+            //setVelocity() and multiplying it by me.timer.tick.
+            //me.timer.tickmakes the movement look smooth
+            this.body.vel.x += this.body.accel.x * me.timer.tick;
+            this.facing = "right";
+            this.flipX(true);
+    },
+    
+    moveLeft: function(){
+      this.facing = "left";
+      this.body.vel.x -= this.body.accel.x / me.timer.tick;
+      this.flipX(false);  
+    },
+    
+    up: function(){
+      this.body.vel.y -= this.body.accel.y * me.timer.tick;  
+    },
+    
+    setAnimation: function(){
+        if (this.attacking){
             if (!this.renderable.isCurrentAnimation("attack")){
                 //Sets the current animation to attack and once that is over
                 //goes back to the idle animation
@@ -76,50 +122,7 @@ game.PlayerEntity = me.Entity.extend({
             }
         } else{
             this.renderable.setCurrentAnimation("idle");
-        }
-
-        me.collision.check(this, true, this.collideHandler.bind(this), true);
-        this.body.update(delta);
-
-        //console.log(" Dead x " + this.body.pos.x + " y " + this.body.pos.y);
-
-        this._super(me.Entity, "update", [delta]);
-        return true;
-    },
-    
-    checkIfDead: function(){
-         if (this.health <= 0){
-            return true;
-        }
-        return false;
-    },
-    
-    checkKeyPressesAndMove: function(){
-        if (me.input.isKeyPressed("right")){
-           
-        }else if (me.input.isKeyPressed("left")){
-            this.facing = "left";
-            this.body.vel.x -= this.body.accel.x / me.timer.tick;
-            this.flipX(false);
-        }else {
-            this.body.vel.x = 0;
-        }
-        if (me.input.isKeyPressed("up")){
-            this.body.vel.y -= this.body.accel.y * me.timer.tick;
         }  
-    },
-    
-    moveRight: function(){
-         //sets the position of my x by adding the velocity defined above in
-            //setVelocity() and multiplying it by me.timer.tick.
-            //me.timer.tickmakes the movement look smooth
-            this.body.vel.x += this.body.accel.x * me.timer.tick;
-            this.facing = "right";
-            this.flipX(true);
-    },
-    
-    moveLeft: function(){
-        
     },
     
     loseHealth: function(damage){
@@ -128,10 +131,15 @@ game.PlayerEntity = me.Entity.extend({
     
     collideHandler: function(response){
         if (response.b.type === 'EnemyBaseEntity'){
+            this.collideWithEnemyBase(response);
+        }else if(response.b.type==='EnemyCreep'){
+            this.collideWithEnemyCreep(response);
+        }
+    }, 
+    
+    collideWithEnemyBase: function(response){
             var ydif = this.pos.y - response.b.pos.y;
             var xdif = this.pos.x - response.b.pos.x;
-
-            console.log("xdif" + xdif + "ydif" + ydif);
 
             if (ydif <-40 && xdif < 70 && xdif >-35){
                 this.body.falling.false;
@@ -142,41 +150,14 @@ game.PlayerEntity = me.Entity.extend({
                 this.pos.x = this.pos.x - 1;
             } else if (xdif<70 && this.facing==='left' && xdif>0){
                 this.body.vel.x = 0;
-                //this.pos.x = this.pos.x + 1;
             }
-            
             if(this.renderable.isCurrentAnimation("attack") && this.now-this.lastHit >= game.data.playerAttackTimer){
                 this.lastHit = this.now;
                 response.b.loseHealth(game.data.playerAttack);
             }
-        }else if(response.b.type==='EnemyCreep'){
-            var xdif = this.pos.x - response.b.pos.x;
-            var ydif = this.pos.y - response.b.pos.y;
-            
-            if (xdif>0){
-                //this.pos.x = this.pos.x + 1;
-                if(this.facing==="left"){
-                    this.body.vel.x = 0;
-                }
-            }else{
-                //this.pos.x = this.pos.x - 1;
-                 if(this.facing==="right"){
-                    this.body.vel.x = 0;
-                } 
-            }            
-            if(this.renderable.isCurrentAnimation("attack") && this.now-this.lastHit >= game.data.playerAttackTimer
-                    && (Math.abs(xdif) <=40) && 
-                    (((xdif>0) && this.facing==="left") || ((xdif<0) && this.facing==="right")) 
-                    ){
-                this.lastHit = this.now;
-                //if the creeps health is less than our attack, execute code in if statement
-                if(response.b.health <= game.data.playerAttack){
-                    game.data.gold += 1;
-                    console.log("Current gold: " + game.data.gold);
-                }                
-                
-                response.b.loseHealth(game.data.playerAttack);
-            }
-        }
     }
+    
+    collideWithEnemyCreep: function(){
+        
+    },
 });
