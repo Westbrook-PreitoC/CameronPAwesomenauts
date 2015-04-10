@@ -37,7 +37,7 @@ game.PlayerEntity = me.Entity.extend({
         this.body.setVelocity(game.data.playerMoveSpeed, 20);
         this.attack = game.data.playerAttack;
     },
-    
+   
     setFlags: function(){
         //Keeps track of which direction your character is going
         this.facing = "right";        
@@ -51,7 +51,7 @@ game.PlayerEntity = me.Entity.extend({
         this.renderable.addAnimation("attack", [65, 66, 67, 68, 69, 70, 71, 72], 80);  
     
     },
-    
+     
     update: function(delta){
         this.now = new Date().getTime();        
         this.dead = this.checkIfDead();
